@@ -1,0 +1,38 @@
+"""Configuration for Rust toolchains and dependencies.
+
+This module sets up the Rust toolchain, and required crates
+for Rust service development.
+"""
+
+RUST_EDITION = "2024"
+
+RUST_VERSION = "1.93.1"
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = RUST_EDITION,
+    extra_target_triples = [
+        "aarch64-unknown-linux-musl",
+        "x86_64-unknown-linux-musl",
+    ],
+    versions = [RUST_VERSION],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+cargo = use_extension(
+    "@rules_rust//crate_universe:extensions.bzl",
+    "crate",
+)
+cargo.from_cargo(
+    name = "cargo",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+    ],
+)
+use_repo(cargo, "cargo")
+
+toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
+toolchains_musl.config()
